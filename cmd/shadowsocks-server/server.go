@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	ss "github.com/shadowsocks/shadowsocks-go/shadowsocks"
+	ss "github.com/tictak/shadowsocks-go/shadowsocks"
 )
 
 const (
@@ -42,6 +42,7 @@ var debug ss.DebugLog
 var sanitizeIps bool
 var udp bool
 var managerAddr string
+var localAddr net.Addr
 
 func getRequest(conn *ss.Conn) (host string, err error) {
 	ss.SetReadTimeout(conn)
@@ -147,7 +148,13 @@ func handleConnection(conn *ss.Conn, port string) {
 		return
 	}
 	debug.Println("connecting", host)
-	remote, err := net.Dial("tcp", host)
+
+	var dialer net.Dialer
+	if localAddr != nil {
+		dialer.LocalAddr = localAddr
+	}
+
+	remote, err := dialer.Dial("tcp", host)
 	if err != nil {
 		if ne, ok := err.(*net.OpError); ok && (ne.Err == syscall.EMFILE || ne.Err == syscall.ENFILE) {
 			// log too many open file error
@@ -464,6 +471,16 @@ func main() {
 		ss.UpdateConfig(config, config)
 	} else {
 		ss.UpdateConfig(config, &cmdConfig)
+	}
+	// set upstream local ip
+	if config.LocalBindAddr != "" {
+		localIP := net.ParseIP(config.LocalBindAddr)
+		if localIP != nil {
+			localAddr = &net.TCPAddr{localIP, 0, ""}
+		} else {
+			os.Exit(1)
+		}
+
 	}
 	if config.Method == "" {
 		config.Method = "aes-256-cfb"

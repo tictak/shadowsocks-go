@@ -26,8 +26,9 @@ type Config struct {
 	Method       string      `json:"method"` // encryption method
 
 	// following options are only used by server
-	PortPassword map[string]string `json:"port_password"`
-	Timeout      int               `json:"timeout"`
+	PortPassword  map[string]string `json:"port_password"`
+	Timeout       int               `json:"timeout"`
+	LocalBindAddr string            `json:"sbind_address"`
 
 	// following options are only used by client
 

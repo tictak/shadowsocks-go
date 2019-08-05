@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	AddrMask        byte = 0xf
+	AddrMask byte = 0xf
 )
 
 type Conn struct {
